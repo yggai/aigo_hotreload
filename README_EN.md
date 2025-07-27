@@ -27,7 +27,8 @@ This is a complete Go hot-reload development template with the following feature
 
 ```
 aigo_hotreload/
-├── main.go              # Main program file
+├── main.go              # CLI tool main program
+├── server.go            # Example server file
 ├── go.mod              # Go module dependencies
 ├── go.sum              # Dependency checksum file
 ├── .air.toml           # Air hot-reload configuration
@@ -39,6 +40,9 @@ aigo_hotreload/
 ```
 
 ## 🚀 Quick Start
+
+### Environment Requirements
+- Go 1.24 or higher
 
 ### 1. Clone Repository
 ```bash
@@ -64,6 +68,37 @@ air
 ```
 
 Now visit `http://localhost:9000` to see your application. Code changes will automatically recompile and restart!
+
+## 🛠️ CLI Scaffolding Tool
+
+This project also provides a powerful CLI scaffolding tool to help you quickly create new hot-reload projects!
+
+### Install CLI Tool
+
+```bash
+go install github.com/yggai/aigo_hotreload@latest
+```
+
+### Create New Project with CLI Tool
+```bash
+# Create new project
+aigo_hotreload create my-new-api
+
+# Enter project directory
+cd my-new-api
+
+# Install dependencies and start
+go mod tidy
+air
+```
+
+### CLI Tool Features
+- ✅ **One-click Creation**: Automatically generate complete project structure
+- ✅ **Pre-configured Hot Reload**: Built-in Air configuration
+- ✅ **Standardized Structure**: Includes README, .gitignore, etc.
+- ✅ **Ready to Use**: Can run immediately after generation
+
+
 
 ## 🌐 Domain Configuration (Production)
 
@@ -141,7 +176,7 @@ Visit `https://your-domain.com` to confirm SSL certificate is working.
 ```go
 module github.com/yggai/aigo_hotreload
 
-go 1.24.4
+go 1.24
 
 require github.com/gin-gonic/gin v1.10.1
 ```
