@@ -11,9 +11,10 @@
 本项目是一个完整的Go语言热重载开发模板，集成了以下特性：
 - ✅ 本地热重载开发
 - ✅ 域名反向代理配置
-- ✅ HTTPS SSL证书自动配置
+- ✅ HTTPS SSL证书自动配置（自动检测并安装certbot）
 - ✅ Nginx反向代理支持
 - ✅ 生产环境部署指南
+- ✅ 智能依赖管理（自动适配不同Linux发行版）
 
 ### 🛠️ 技术栈
 
@@ -22,6 +23,23 @@
 - **反向代理**: Nginx
 - **SSL证书**: Let's Encrypt (免费)
 - **部署环境**: Linux云服务器
+
+### 🚀 核心优势
+
+#### 智能化部署
+- **零配置启动**：一键创建项目，无需手动配置
+- **智能依赖管理**：自动检测并安装所需工具（certbot、nginx等）
+- **跨平台兼容**：支持Ubuntu、Debian、CentOS、Fedora等主流Linux发行版
+
+#### 开发效率提升
+- **热重载开发**：代码修改后自动重新编译和重启
+- **标准化结构**：统一的项目结构和最佳实践
+- **即开即用**：生成后立即可运行，无需额外配置
+
+#### 生产环境就绪
+- **SSL证书自动化**：一键申请和配置HTTPS证书
+- **nginx配置模板**：预配置的反向代理和负载均衡
+- **完整部署流程**：从开发到生产的完整解决方案
 
 ### 📁 项目结构
 
@@ -142,8 +160,9 @@ my-api/
 - ✅ **标准化结构**：包含README、.gitignore等
 - ✅ **即开即用**：生成后立即可运行
 - ✅ **nginx配置**：自动生成nginx配置文件和脚本
-- ✅ **SSL证书**：自动生成SSL证书申请脚本
+- ✅ **SSL证书**：自动生成SSL证书申请脚本（智能检测并安装certbot）
 - ✅ **域名部署**：支持一键配置域名和HTTPS
+- ✅ **智能依赖管理**：自动适配Ubuntu/Debian/CentOS/Fedora等系统
 
 
 
@@ -235,9 +254,22 @@ chmod +x config/setup-nginx.sh
 # 进入项目目录
 cd my-api
 
-# 申请SSL证书
+# 申请SSL证书（脚本会自动检测并安装certbot）
 chmod +x scripts/apply-ssl.sh
 ./scripts/apply-ssl.sh your-domain.com
+```
+
+**智能依赖管理示例**：
+```bash
+# 脚本会自动执行以下步骤：
+# 1. 检查certbot是否已安装
+# 2. 如果未安装，根据系统类型自动选择包管理器：
+#    - Ubuntu/Debian: apt install -y certbot python3-certbot-nginx
+#    - CentOS/RHEL: yum install -y certbot python3-certbot-nginx
+#    - Fedora: dnf install -y certbot python3-certbot-nginx
+# 3. 验证安装是否成功
+# 4. 申请SSL证书
+# 5. 配置nginx并重新加载
 ```
 
 #### 2. 手动申请SSL证书
@@ -256,7 +288,18 @@ sudo certbot --nginx -d your-domain.com
 **验证HTTPS**
 访问 `https://your-domain.com` 确认SSL证书配置成功。
 
-#### 3. SSL证书管理
+#### 3. 智能依赖管理特性
+
+CLI工具生成的SSL申请脚本具有以下智能特性：
+- 🔍 **自动检测certbot**：检查是否已安装certbot
+- 🚀 **智能安装**：根据系统类型自动选择包管理器
+  - Ubuntu/Debian：使用 `apt install`
+  - CentOS/RHEL：使用 `yum install`
+  - Fedora：使用 `dnf install`
+- ✅ **安装验证**：验证安装是否成功
+- 📋 **故障排除**：提供详细的错误诊断和解决建议
+
+#### 4. SSL证书管理
 
 ```bash
 # 查看证书状态

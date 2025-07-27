@@ -96,6 +96,44 @@ if [ ! -f "$NGINX_CONFIG" ]; then
     exit 1
 fi
 
+# 检查certbot是否已安装
+echo "检查certbot是否已安装..."
+if ! command -v certbot &> /dev/null; then
+    echo "certbot未安装，正在自动安装..."
+    
+    # 检测操作系统类型
+    if [ -f /etc/debian_version ]; then
+        # Debian/Ubuntu系统
+        echo "检测到Debian/Ubuntu系统，使用apt安装..."
+        apt update
+        apt install -y certbot python3-certbot-nginx
+    elif [ -f /etc/redhat-release ]; then
+        # CentOS/RHEL系统
+        echo "检测到CentOS/RHEL系统，使用yum安装..."
+        yum install -y certbot python3-certbot-nginx
+    elif command -v dnf &> /dev/null; then
+        # Fedora系统
+        echo "检测到Fedora系统，使用dnf安装..."
+        dnf install -y certbot python3-certbot-nginx
+    else
+        echo "❌ 无法检测操作系统类型，请手动安装certbot："
+        echo "Debian/Ubuntu: sudo apt install -y certbot python3-certbot-nginx"
+        echo "CentOS/RHEL: sudo yum install -y certbot python3-certbot-nginx"
+        echo "Fedora: sudo dnf install -y certbot python3-certbot-nginx"
+        exit 1
+    fi
+    
+    # 验证安装是否成功
+    if ! command -v certbot &> /dev/null; then
+        echo "❌ certbot安装失败，请手动安装后重试"
+        exit 1
+    else
+        echo "✅ certbot安装成功"
+    fi
+else
+    echo "✅ certbot已安装"
+fi
+
 # 申请SSL证书
 echo "正在申请SSL证书..."
 certbot --nginx -d $DOMAIN
@@ -119,6 +157,10 @@ if [ $? -eq 0 ]; then
 else
     echo "❌ SSL证书申请失败"
     echo "请检查域名是否正确指向此服务器"
+    echo "常见问题："
+    echo "1. 域名DNS解析是否正确指向此服务器"
+    echo "2. 80和443端口是否开放"
+    echo "3. nginx是否正常运行"
 fi
 `
 
