@@ -1,236 +1,268 @@
-# aigo_hotreload
-源滚滚AI编程开发的Go语言热重载模板项目，用于实现在云服务器热更新，提高开发速度
+# Go 热重载开发模板 (aigo_hotreload)
 
-## 基础代码
-go.mod
+> 🚀 源滚滚AI编程开发的Go语言热重载模板项目，专为云服务器开发环境设计，支持本地和域名热更新，大幅提升开发效率！
+
+[中文](README.md) | [English](README_EN.md)
+
+---
+
+### 📋 项目简介
+
+本项目是一个完整的Go语言热重载开发模板，集成了以下特性：
+- ✅ 本地热重载开发
+- ✅ 域名反向代理配置
+- ✅ HTTPS SSL证书自动配置
+- ✅ Nginx反向代理支持
+- ✅ 生产环境部署指南
+
+### 🛠️ 技术栈
+
+- **后端框架**: Gin (Go)
+- **热重载工具**: Air
+- **反向代理**: Nginx
+- **SSL证书**: Let's Encrypt (免费)
+- **部署环境**: Linux云服务器
+
+### 📁 项目结构
+
+```
+aigo_hotreload/
+├── main.go              # 主程序文件
+├── go.mod              # Go模块依赖
+├── go.sum              # 依赖校验文件
+├── .air.toml           # Air热重载配置
+├── config/             # 配置文件目录
+│   └── testapi.zhangdapeng.com  # Nginx站点配置
+├── docs/               # 文档目录
+├── README.md           # 项目说明文档（中文）
+└── README_EN.md        # 项目说明文档（英文）
+```
+
+### 🚀 快速开始
+
+#### 1. 克隆项目
 ```bash
+git clone https://github.com/yggai/aigo_hotreload.git
+cd aigo_hotreload
+```
+
+#### 2. 安装依赖
+```bash
+go mod tidy
+```
+
+#### 3. 本地开发（热重载）
+```bash
+# 安装Air热重载工具
+go install github.com/air-verse/air@latest
+
+# 初始化Air配置
+air init
+
+# 启动热重载开发服务
+air
+```
+
+现在访问 `http://localhost:9000` 即可看到应用运行效果。修改代码后会自动重新编译和重启！
+
+### 🌐 域名配置（生产环境）
+
+#### 1. 域名解析
+将您的域名（如：`testapi.zhangdapeng.com`）解析到服务器IP地址。
+
+#### 2. Nginx反向代理配置
+
+创建Nginx站点配置文件：
+```bash
+sudo nano /etc/nginx/sites-available/your-domain.com
+```
+
+配置内容：
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://localhost:9000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WebSocket支持
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # 日志配置
+    access_log /var/log/nginx/your-domain.com.access.log;
+    error_log /var/log/nginx/your-domain.com.error.log;
+}
+```
+
+#### 3. 启用站点
+```bash
+# 创建软链接
+sudo ln -sf /etc/nginx/sites-available/your-domain.com /etc/nginx/sites-enabled/
+
+# 测试配置
+sudo nginx -t
+
+# 重新加载Nginx
+sudo systemctl reload nginx
+```
+
+### 🔒 HTTPS SSL证书配置
+
+#### 1. 安装Certbot
+```bash
+sudo apt update
+sudo apt install -y certbot python3-certbot-nginx
+```
+
+#### 2. 申请SSL证书
+```bash
+sudo certbot --nginx -d your-domain.com
+```
+
+#### 3. 验证HTTPS
+访问 `https://your-domain.com` 确认SSL证书配置成功。
+
+### 📝 核心代码文件
+
+#### go.mod
+```go
 module github.com/yggai/aigo_hotreload
 
 go 1.24.4
 
-require (
-	github.com/bytedance/sonic v1.11.6 // indirect
-	github.com/bytedance/sonic/loader v0.1.1 // indirect
-	github.com/cloudwego/base64x v0.1.4 // indirect
-	github.com/cloudwego/iasm v0.2.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
-	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/gin-gonic/gin v1.10.1 // indirect
-	github.com/go-playground/locales v0.14.1 // indirect
-	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.20.0 // indirect
-	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
-	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
-	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
-	github.com/ugorji/go/codec v1.2.12 // indirect
-	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/crypto v0.23.0 // indirect
-	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
-)
+require github.com/gin-gonic/gin v1.10.1
 ```
 
-main.go
+#### main.go
 ```go
 package main
 
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func main() {
-	// 创建gin路由器
+	// 创建Gin路由器
 	r := gin.Default()
 
-	// 打印启动信息
-	fmt.Println("正在启动gin服务器...")
-	fmt.Println("服务器将在 http://localhost:8080 启动")
+	// 启动信息
+	fmt.Println("🚀 正在启动Gin服务器...")
+	fmt.Println("📡 服务器将在 http://localhost:9000 启动")
 
-	// 添加一个简单的打招呼路由
+	// 根路由
 	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "你好！欢迎使用我们的gin程序！",
-			"status":  "success",
+		c.JSON(200, gin.H{
+			"message":   "热更新测试成功！代码已自动重载",
+			"status":    "success",
+			"timestamp": "2024-01-01",
 		})
 	})
 
-	// 添加另一个打招呼路由
+	// Hello路由
 	r.GET("/hello", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Hello, World!",
-			"greeting": "欢迎来到gin世界！",
+		c.JSON(200, gin.H{
+			"message":  "Hello, World!",
+			"greeting": "欢迎来到Gin世界！",
+			"version":  "v1.0.0",
 		})
 	})
 
-	// 启动服务器在8080端口
-	r.Run(":8080")
+	// 启动服务器
+	r.Run(":9000")
 }
 ```
 
-## 本机实现热更新
-安装依赖：
-```bash
-go install github.com/air-verse/air@latest 
-```
+### 🔧 常用命令
 
-初始化配置：
+#### 开发命令
 ```bash
-air init 
-```
-
-启动服务：
-```bash
+# 启动热重载开发
 air
-```
 
-停止服务：
-```bash
+# 停止热重载服务
+Ctrl+C  # 或者
 killall air
+
+# 重新初始化Air配置
+air init
+
+# 直接运行（不使用热重载）
+go run main.go
 ```
 
-## 域名实现热更新
-配置域名指向本主机，比如：testapi.zhangdapeng.com
-
-创建nginx配置文件：config/testapi.zhangdapeng.com
+#### 生产环境命令
 ```bash
-server {
-    listen 80;
-    server_name testapi.zhangdapeng.com;
+# 编译生产版本
+go build -o app main.go
 
-    location / {
-        proxy_pass http://localhost:9000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # 支持WebSocket连接（如果需要）
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        
-        # 超时设置
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
+# 运行生产版本
+./app
 
-    # 日志配置
-    access_log /var/log/nginx/testapi.zhangdapeng.com.access.log;
-    error_log /var/log/nginx/testapi.zhangdapeng.com.error.log;
-}
+# 后台运行
+nohup ./app &
 ```
 
-创建软连接：
-```bash
-ln -sf config/testapi.zhangdapeng.com /etc/nginx/sites-enabled/
-```
+### 🔍 故障排除
 
-测试nginx配置是否正确：
-```bash
-nginx -t
-```
+#### 常见问题
 
-重新加载nginx配置使新站点生效。
-```bash
-systemctl reload nginx 
-```
+1. **端口被占用**
+   ```bash
+   # 查看端口占用
+   lsof -i :9000
+   
+   # 杀死占用进程
+   kill -9 <PID>
+   ```
 
-启动热更新服务，让域名可以访问到我们的Go应用。
-```bash
-air
-```
+2. **Nginx配置错误**
+   ```bash
+   # 测试配置
+   sudo nginx -t
+   
+   # 查看错误日志
+   sudo tail -f /var/log/nginx/error.log
+   ```
 
-## 申请免费的SSL证书
-安装依赖：
-```bash
-sudo apt update
-sudo apt install -y certbot python3-certbot-nginx
-```
+3. **SSL证书问题**
+   ```bash
+   # 检查证书状态
+   sudo certbot certificates
+   
+   # 手动续期
+   sudo certbot renew
+   ```
 
-申请证书：
-```bash
-certbot --nginx -d testapi.zhangdapeng.com 
-```
+### 📊 性能优化
 
-查看配置是否生效：
-```bash
-nginx -t && systemctl reload nginx
-```
+- 生产环境建议使用 `gin.SetMode(gin.ReleaseMode)` 关闭调试模式
+- 配置适当的Nginx缓存策略
+- 使用反向代理负载均衡（多实例部署）
 
-启动热更新服务：
-```bash
-air
-```
+### 📄 许可证
 
-证书文件位置
-- 证书文件： /etc/letsencrypt/live/testapi.zhangdapeng.com/fullchain.pem
-- 私钥文件： /etc/letsencrypt/live/testapi.zhangdapeng.com/privkey.pem
+本项目采用个人研究项目协议，允许学习和研究使用，商业使用需要作者书面授权。
 
-现在您可以通过以下方式访问您的服务：
-- HTTP ： http://testapi.zhangdapeng.com
-- HTTPS ： https://testapi.zhangdapeng.com
+### 👨‍💻 作者信息
 
-可以把证书文件复制出来：
-```bash
-cp /etc/nginx/sites-enabled/testapi.zhangdapeng.com .
-```
+- **作者**: 源滚滚AI编程
+- **邮箱**: 1156956626@qq.com
+- **电话**: 18010070052
 
-可以看到，最终的证书文件如下：
-```bash
-server {
-    server_name testapi.zhangdapeng.com;
+---
 
-    location / {
-        proxy_pass http://localhost:9000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # 支持WebSocket连接（如果需要）
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        
-        # 超时设置
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-
-    # 日志配置
-    access_log /var/log/nginx/testapi.zhangdapeng.com.access.log;
-    error_log /var/log/nginx/testapi.zhangdapeng.com.error.log;
-
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/testapi.zhangdapeng.com/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/testapi.zhangdapeng.com/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-
-}
-server {
-    if ($host = testapi.zhangdapeng.com) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
-
-
-    listen 80;
-    server_name testapi.zhangdapeng.com;
-    return 404; # managed by Certbot
-
-
-}
-```
+**Happy Coding! 🎉**
