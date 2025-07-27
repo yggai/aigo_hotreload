@@ -3,9 +3,6 @@ package config
 // Version CLI工具版本号
 const Version = "1.0.0"
 
-// DefaultPort 默认端口
-const DefaultPort = "8888"
-
 // Messages 消息文本
 var Messages = struct {
 	ToolName        string
@@ -91,7 +88,7 @@ var Messages = struct {
 			Cd:     "  cd %s",
 			Tidy:   "  go mod tidy",
 			Air:    "  air",
-			Access: "然后访问 http://localhost:8888 查看效果",
+			Access: "然后访问 " + BaseURL + " 查看效果",
 		},
 	},
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/yggai/aigo_hotreload/config"
 	"github.com/yggai/aigo_hotreload/templates"
 )
 
@@ -47,5 +48,5 @@ func (pg *ProjectGenerator) GenerateAll() error {
 // writeFile 写入文件
 func (pg *ProjectGenerator) writeFile(filename, content string) error {
 	filePath := filepath.Join(pg.projectPath, filename)
-	return os.WriteFile(filePath, []byte(content), 0644)
+	return os.WriteFile(filePath, []byte(content), config.FilePermission)
 }
