@@ -42,6 +42,39 @@ func (pg *ProjectGenerator) GenerateAll() error {
 		}
 	}
 
+	// 创建config目录
+	configDir := filepath.Join(pg.projectPath, "config")
+	if err := os.MkdirAll(configDir, config.DirPermission); err != nil {
+		return fmt.Errorf("创建config目录失败: %v", err)
+	}
+
+	// 生成nginx配置文件
+	nginxFiles := []struct {
+		filename string
+		content  string
+	}{
+		{"config/your-domain.com", fmt.Sprintf(templates.NginxHTTPTemplate, "your-domain.com", config.DefaultPort, "your-domain.com", "your-domain.com")},
+		{"config/setup-nginx.sh", templates.NginxSetupScriptTemplate},
+	}
+
+	for _, file := range nginxFiles {
+		if err := pg.writeFile(file.filename, file.content); err != nil {
+			return fmt.Errorf("生成文件 %s 失败: %v", file.filename, err)
+		}
+	}
+
+	// 创建scripts目录
+	scriptsDir := filepath.Join(pg.projectPath, "scripts")
+	if err := os.MkdirAll(scriptsDir, config.DirPermission); err != nil {
+		return fmt.Errorf("创建scripts目录失败: %v", err)
+	}
+
+	// 生成SSL证书申请脚本
+	sslScriptFile := "scripts/apply-ssl.sh"
+	if err := pg.writeFile(sslScriptFile, templates.CertbotScriptTemplate); err != nil {
+		return fmt.Errorf("生成文件 %s 失败: %v", sslScriptFile, err)
+	}
+
 	return nil
 }
 

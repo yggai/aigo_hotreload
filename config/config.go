@@ -10,6 +10,7 @@ var Messages = struct {
 	UsageHeader     string
 	Commands        struct {
 		Create  string
+		Nginx   string
 		Version string
 		Help    string
 	}
@@ -33,6 +34,11 @@ var Messages = struct {
 			Air     string
 			Access  string
 		}
+		Deployment      struct {
+			NginxSetup     string
+			SSLSetup       string
+			DomainAccess   string
+		}
 	}
 }{
 	ToolName:        "aigo_hotreload",
@@ -40,10 +46,12 @@ var Messages = struct {
 	UsageHeader:     "用法:",
 	Commands: struct {
 		Create  string
+		Nginx   string
 		Version string
 		Help    string
 	}{
 		Create:  "  aigo_hotreload create <project-name>  创建新的热重载项目",
+		Nginx:   "  aigo_hotreload nginx <domain> <path> [port] 生成nginx配置",
 		Version: "  aigo_hotreload version               显示版本信息",
 		Help:    "  aigo_hotreload help                  显示帮助信息",
 	},
@@ -75,6 +83,11 @@ var Messages = struct {
 			Air     string
 			Access  string
 		}
+		Deployment      struct {
+			NginxSetup     string
+			SSLSetup       string
+			DomainAccess   string
+		}
 	}{
 		Creating:  "正在创建项目: %s",
 		Created:   "✅ 项目 %s 创建成功!",
@@ -89,6 +102,15 @@ var Messages = struct {
 			Tidy:   "  go mod tidy",
 			Air:    "  air",
 			Access: "然后访问 " + BaseURL + " 查看效果",
+		},
+		Deployment: struct {
+			NginxSetup     string
+			SSLSetup       string
+			DomainAccess   string
+		}{
+			NginxSetup:   "  # 配置nginx: ./config/setup-nginx.sh your-domain.com",
+			SSLSetup:     "  # 申请SSL: ./scripts/apply-ssl.sh your-domain.com",
+			DomainAccess: "  # 域名访问: https://your-domain.com",
 		},
 	},
 }

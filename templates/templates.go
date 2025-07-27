@@ -191,6 +191,11 @@ const ReadmeTemplate = `# %s
 ├── go.mod              # Go模块依赖
 ├── .air.toml           # Air热重载配置
 ├── .gitignore          # Git忽略文件
+├── config/             # nginx配置文件目录
+│   ├── your-domain.com # nginx配置文件
+│   └── setup-nginx.sh  # nginx配置脚本
+├── scripts/            # 脚本目录
+│   └── apply-ssl.sh    # SSL证书申请脚本
 └── README.md           # 项目说明
 ` + "```" + `
 
@@ -200,7 +205,27 @@ const ReadmeTemplate = `# %s
 - 默认端口: 8888
 - 支持热重载，提高开发效率
 
-## 📝 API接口
+## 🌐 域名部署
+
+### 1. 配置nginx
+` + "```bash\n" + `# 编辑nginx配置文件
+vim config/your-domain.com
+
+# 运行nginx配置脚本
+chmod +x config/setup-nginx.sh
+./config/setup-nginx.sh your-domain.com 8888
+` + "```\n\n" + `### 2. 申请SSL证书
+` + "```bash\n" + `# 安装certbot
+sudo apt update
+sudo apt install -y certbot python3-certbot-nginx
+
+# 申请SSL证书
+chmod +x scripts/apply-ssl.sh
+./scripts/apply-ssl.sh your-domain.com
+` + "```\n\n" + `### 3. 启动服务
+` + "```bash\n" + `# 启动热重载服务
+air
+` + "```\n\n" + `## 📝 API接口
 
 ### GET /
 返回欢迎信息

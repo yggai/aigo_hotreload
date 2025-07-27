@@ -67,7 +67,7 @@ air init
 air
 ```
 
-现在访问 `http://localhost:9000` 即可看到应用运行效果。修改代码后会自动重新编译和重启！
+现在访问 `http://localhost:8888` 即可看到应用运行效果。修改代码后会自动重新编译和重启！
 
 ## 🛠️ CLI脚手架工具
 
@@ -90,6 +90,50 @@ cd my-new-api
 # 安装依赖并启动
 go mod tidy
 air
+
+# 生成nginx配置（可选）
+aigo_hotreload nginx your-domain.com ./my-new-api 8888
+```
+
+### CLI工具完整功能
+
+#### 创建项目
+```bash
+# 创建新的热重载项目
+aigo_hotreload create <project-name>
+```
+
+#### 生成nginx配置
+```bash
+# 为指定域名生成nginx配置文件
+aigo_hotreload nginx <domain> <project-path> [port]
+
+# 示例
+aigo_hotreload nginx api.example.com ./my-api 8888
+```
+
+#### 查看帮助
+```bash
+# 显示帮助信息
+aigo_hotreload help
+
+# 显示版本信息
+aigo_hotreload version
+```
+
+#### 生成的项目结构
+```
+my-api/
+├── main.go              # 主程序文件
+├── go.mod              # Go模块依赖
+├── .air.toml           # Air热重载配置
+├── .gitignore          # Git忽略文件
+├── README.md           # 项目说明
+├── config/             # nginx配置文件目录
+│   ├── your-domain.com # nginx配置文件
+│   └── setup-nginx.sh  # nginx配置脚本
+└── scripts/            # 脚本目录
+    └── apply-ssl.sh    # SSL证书申请脚本
 ```
 
 ### CLI工具特性
@@ -97,29 +141,42 @@ air
 - ✅ **预配置热重载**：内置Air配置文件
 - ✅ **标准化结构**：包含README、.gitignore等
 - ✅ **即开即用**：生成后立即可运行
+- ✅ **nginx配置**：自动生成nginx配置文件和脚本
+- ✅ **SSL证书**：自动生成SSL证书申请脚本
+- ✅ **域名部署**：支持一键配置域名和HTTPS
 
 
 
 ### 🌐 域名配置（生产环境）
 
-#### 1. 域名解析
+#### 1. 使用CLI工具自动生成nginx配置
+
+```bash
+# 创建新项目
+aigo_hotreload create my-api
+
+# 生成nginx配置文件
+aigo_hotreload nginx your-domain.com ./my-api 8888
+```
+
+#### 2. 手动配置nginx
+
+**域名解析**
 将您的域名（如：`testapi.zhangdapeng.com`）解析到服务器IP地址。
 
-#### 2. Nginx反向代理配置
-
-创建Nginx站点配置文件：
+**创建Nginx站点配置文件**
 ```bash
 sudo nano /etc/nginx/sites-available/your-domain.com
 ```
 
-配置内容：
+**配置内容**
 ```nginx
 server {
     listen 80;
     server_name your-domain.com;
 
     location / {
-        proxy_pass http://localhost:9000;
+        proxy_pass http://localhost:8888;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -142,7 +199,7 @@ server {
 }
 ```
 
-#### 3. 启用站点
+**启用站点**
 ```bash
 # 创建软链接
 sudo ln -sf /etc/nginx/sites-available/your-domain.com /etc/nginx/sites-enabled/
@@ -154,21 +211,63 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
+#### 3. 使用自动配置脚本
+
+CLI工具生成的项目包含自动配置脚本：
+
+```bash
+# 进入项目目录
+cd my-api
+
+# 编辑nginx配置文件
+vim config/your-domain.com
+
+# 运行nginx配置脚本
+chmod +x config/setup-nginx.sh
+./config/setup-nginx.sh your-domain.com 8888
+```
+
 ### 🔒 HTTPS SSL证书配置
 
-#### 1. 安装Certbot
+#### 1. 使用CLI工具自动申请SSL证书
+
+```bash
+# 进入项目目录
+cd my-api
+
+# 申请SSL证书
+chmod +x scripts/apply-ssl.sh
+./scripts/apply-ssl.sh your-domain.com
+```
+
+#### 2. 手动申请SSL证书
+
+**安装Certbot**
 ```bash
 sudo apt update
 sudo apt install -y certbot python3-certbot-nginx
 ```
 
-#### 2. 申请SSL证书
+**申请SSL证书**
 ```bash
 sudo certbot --nginx -d your-domain.com
 ```
 
-#### 3. 验证HTTPS
+**验证HTTPS**
 访问 `https://your-domain.com` 确认SSL证书配置成功。
+
+#### 3. SSL证书管理
+
+```bash
+# 查看证书状态
+sudo certbot certificates
+
+# 手动续期
+sudo certbot renew
+
+# 删除证书
+sudo certbot delete --cert-name your-domain.com
+```
 
 ### 📝 核心代码文件
 
@@ -187,6 +286,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"github.com/gin-gonic/gin"
 )
 
@@ -195,8 +295,8 @@ func main() {
 	r := gin.Default()
 
 	// 启动信息
-	fmt.Println("🚀 正在启动Gin服务器...")
-	fmt.Println("📡 服务器将在 http://localhost:9000 启动")
+	fmt.Println("正在启动gin服务器...")
+	fmt.Println("服务器将在 http://localhost:8888 启动")
 
 	// 根路由
 	r.GET("/", func(c *gin.Context) {
@@ -209,15 +309,38 @@ func main() {
 
 	// Hello路由
 	r.GET("/hello", func(c *gin.Context) {
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"message":  "Hello, World!",
-			"greeting": "欢迎来到Gin世界！",
-			"version":  "v1.0.0",
+			"greeting": "欢迎来到gin世界！",
 		})
 	})
 
+	// 健康检查
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "healthy",
+			"time":   "2024-01-01 00:00:00",
+		})
+	})
+
+	// API路由组
+	api := r.Group("/api/v1")
+	{
+		api.GET("/users", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"users": []string{"Alice", "Bob", "Charlie"},
+			})
+		})
+
+		api.POST("/users", func(c *gin.Context) {
+			c.JSON(http.StatusCreated, gin.H{
+				"message": "User created successfully",
+			})
+		})
+	}
+
 	// 启动服务器
-	r.Run(":9000")
+	r.Run(":8888")
 }
 ```
 
@@ -258,7 +381,7 @@ nohup ./app &
 1. **端口被占用**
    ```bash
    # 查看端口占用
-   lsof -i :9000
+   lsof -i :8888
    
    # 杀死占用进程
    kill -9 <PID>

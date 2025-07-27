@@ -80,4 +80,11 @@ func (m *Manager) showNextSteps(projectName string) {
 	m.logger.Println(config.Messages.Success.Commands.Air)
 	m.logger.PrintEmpty()
 	m.logger.Println(config.Messages.Success.Commands.Access)
+	
+	// 显示部署相关信息
+	m.logger.PrintEmpty()
+	m.logger.Println("🌐 域名部署:")
+	m.logger.Println(config.Messages.Success.Deployment.NginxSetup)
+	m.logger.Println(config.Messages.Success.Deployment.SSLSetup)
+	m.logger.Println(config.Messages.Success.Deployment.DomainAccess)
 } 
