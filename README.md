@@ -1,2 +1,236 @@
 # aigo_hotreload
 源滚滚AI编程开发的Go语言热重载模板项目，用于实现在云服务器热更新，提高开发速度
+
+## 基础代码
+go.mod
+```bash
+module github.com/yggai/aigo_hotreload
+
+go 1.24.4
+
+require (
+	github.com/bytedance/sonic v1.11.6 // indirect
+	github.com/bytedance/sonic/loader v0.1.1 // indirect
+	github.com/cloudwego/base64x v0.1.4 // indirect
+	github.com/cloudwego/iasm v0.2.0 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/gin-gonic/gin v1.10.1 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-playground/validator/v10 v10.20.0 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
+	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
+	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
+	github.com/ugorji/go/codec v1.2.12 // indirect
+	golang.org/x/arch v0.8.0 // indirect
+	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+```
+
+main.go
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
+
+func main() {
+	// 创建gin路由器
+	r := gin.Default()
+
+	// 打印启动信息
+	fmt.Println("正在启动gin服务器...")
+	fmt.Println("服务器将在 http://localhost:8080 启动")
+
+	// 添加一个简单的打招呼路由
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "你好！欢迎使用我们的gin程序！",
+			"status":  "success",
+		})
+	})
+
+	// 添加另一个打招呼路由
+	r.GET("/hello", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Hello, World!",
+			"greeting": "欢迎来到gin世界！",
+		})
+	})
+
+	// 启动服务器在8080端口
+	r.Run(":8080")
+}
+```
+
+## 本机实现热更新
+安装依赖：
+```bash
+go install github.com/air-verse/air@latest 
+```
+
+初始化配置：
+```bash
+air init 
+```
+
+启动服务：
+```bash
+air
+```
+
+停止服务：
+```bash
+killall air
+```
+
+## 域名实现热更新
+配置域名指向本主机，比如：testapi.zhangdapeng.com
+
+创建nginx配置文件：config/testapi.zhangdapeng.com
+```bash
+server {
+    listen 80;
+    server_name testapi.zhangdapeng.com;
+
+    location / {
+        proxy_pass http://localhost:9000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # 支持WebSocket连接（如果需要）
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # 日志配置
+    access_log /var/log/nginx/testapi.zhangdapeng.com.access.log;
+    error_log /var/log/nginx/testapi.zhangdapeng.com.error.log;
+}
+```
+
+创建软连接：
+```bash
+ln -sf config/testapi.zhangdapeng.com /etc/nginx/sites-enabled/
+```
+
+测试nginx配置是否正确：
+```bash
+nginx -t
+```
+
+重新加载nginx配置使新站点生效。
+```bash
+systemctl reload nginx 
+```
+
+启动热更新服务，让域名可以访问到我们的Go应用。
+```bash
+air
+```
+
+## 申请免费的SSL证书
+安装依赖：
+```bash
+sudo apt update
+sudo apt install -y certbot python3-certbot-nginx
+```
+
+申请证书：
+```bash
+certbot --nginx -d testapi.zhangdapeng.com 
+```
+
+查看配置是否生效：
+```bash
+nginx -t && systemctl reload nginx
+```
+
+启动热更新服务：
+```bash
+air
+```
+
+证书文件位置
+- 证书文件： /etc/letsencrypt/live/testapi.zhangdapeng.com/fullchain.pem
+- 私钥文件： /etc/letsencrypt/live/testapi.zhangdapeng.com/privkey.pem
+
+现在您可以通过以下方式访问您的服务：
+- HTTP ： http://testapi.zhangdapeng.com
+- HTTPS ： https://testapi.zhangdapeng.com
+
+可以把证书文件复制出来：
+```bash
+cp /etc/nginx/sites-enabled/testapi.zhangdapeng.com .
+```
+
+可以看到，最终的证书文件如下：
+```bash
+server {
+    server_name testapi.zhangdapeng.com;
+
+    location / {
+        proxy_pass http://localhost:9000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # 支持WebSocket连接（如果需要）
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # 日志配置
+    access_log /var/log/nginx/testapi.zhangdapeng.com.access.log;
+    error_log /var/log/nginx/testapi.zhangdapeng.com.error.log;
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/testapi.zhangdapeng.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/testapi.zhangdapeng.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+server {
+    if ($host = testapi.zhangdapeng.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    server_name testapi.zhangdapeng.com;
+    return 404; # managed by Certbot
+
+
+}
+```
