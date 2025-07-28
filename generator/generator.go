@@ -81,5 +81,12 @@ func (pg *ProjectGenerator) GenerateAll() error {
 // writeFile 写入文件
 func (pg *ProjectGenerator) writeFile(filename, content string) error {
 	filePath := filepath.Join(pg.projectPath, filename)
+	
+	// 确保目录存在
+	dir := filepath.Dir(filePath)
+	if err := os.MkdirAll(dir, config.DirPermission); err != nil {
+		return fmt.Errorf("创建目录失败: %v", err)
+	}
+	
 	return os.WriteFile(filePath, []byte(content), config.FilePermission)
 }
